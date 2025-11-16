@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Download } from "lucide-react";
 import Layout from "@/components/Layout";
 import { toast } from "sonner";
@@ -135,52 +136,70 @@ export default function Reports() {
         {reportData && (
           <Card className="shadow-lg">
             <CardHeader className="border-b bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-              <CardTitle className="text-2xl">Report Card Preview</CardTitle>
+              <div>
+                <CardTitle className="text-2xl mb-2">Report Card Preview</CardTitle>
+                <div className="text-sm opacity-90">
+                  <p className="font-semibold">Name: {reportData.student.name}</p>
+                  <p>Class: {reportData.student.class}</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
+              {reportData.scores.length > 0 && (
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Subject</TableHead>
+                        <TableHead className="text-right">Mid-Term Score</TableHead>
+                        <TableHead className="text-right">End of Term Score</TableHead>
+                        <TableHead className="text-right">Total Score</TableHead>
+                        <TableHead>Comment</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reportData.scores.map((score: any) => {
+                        const total = (score.mid_term_score / 2 + score.end_term_score / 2).toFixed(2);
+                        return (
+                          <TableRow key={score.id}>
+                            <TableCell className="font-medium">{score.subjects.name}</TableCell>
+                            <TableCell className="text-right">{score.mid_term_score}</TableCell>
+                            <TableCell className="text-right">{score.end_term_score}</TableCell>
+                            <TableCell className="text-right">{total}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {score.comment || "-"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      <TableRow className="bg-muted/50 font-semibold">
+                        <TableCell colSpan={3}>Grand Total</TableCell>
+                        <TableCell className="text-right">{reportData.grandTotal.toFixed(2)}</TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h3 className="font-semibold text-foreground">Student Information</h3>
-                  <p className="text-sm text-muted-foreground">Name: {reportData.student.name}</p>
-                  <p className="text-sm text-muted-foreground">Class: {reportData.student.class}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Performance Summary</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Grand Total: {reportData.grandTotal.toFixed(2)}
-                  </p>
+                  <h3 className="font-semibold text-foreground mb-2">Performance Summary</h3>
                   <p className="text-sm text-muted-foreground">
                     Class Position: {reportData.rank} of {reportData.totalStudents}
                   </p>
                 </div>
-              </div>
-
-              {reportData.scores.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">Subject Scores</h3>
-                  <div className="space-y-2">
-                    {reportData.scores.map((score: any) => (
-                      <div key={score.id} className="flex justify-between rounded-lg bg-muted p-3">
-                        <span className="font-medium">{score.subjects.name}</span>
-                        <span className="text-muted-foreground">
-                          {(score.mid_term_score / 2 + score.end_term_score / 2).toFixed(2)} / 100
-                        </span>
-                      </div>
-                    ))}
+                {reportData.attendance && (
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">Attendance</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {reportData.attendance.present_days} of {reportData.attendance.total_days} days (
+                      {((reportData.attendance.present_days / reportData.attendance.total_days) * 100).toFixed(2)}
+                      %)
+                    </p>
                   </div>
-                </div>
-              )}
-
-              {reportData.attendance && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">Attendance</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {reportData.attendance.present_days} of {reportData.attendance.total_days} days (
-                    {((reportData.attendance.present_days / reportData.attendance.total_days) * 100).toFixed(2)}
-                    %)
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
 
               {reportData.comments && (
                 <div>

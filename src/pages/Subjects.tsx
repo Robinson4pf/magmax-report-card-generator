@@ -58,12 +58,12 @@ export default function Subjects() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-foreground">Subjects Management</h2>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Subjects Management</h2>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 text-sm sm:text-base w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 Add Subject
               </Button>
@@ -121,9 +121,9 @@ export default function Subjects() {
 
         {!subjects?.length && (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No subjects added yet. Click "Add Subject" to get started.</p>
+            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+              <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-sm sm:text-base text-center px-4">No subjects added yet. Click "Add Subject" to get started.</p>
             </CardContent>
           </Card>
         )}

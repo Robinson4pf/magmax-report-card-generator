@@ -93,12 +93,12 @@ export default function Students() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-foreground">Students Management</h2>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Students Management</h2>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 text-sm sm:text-base w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 Add Student
               </Button>
@@ -140,18 +140,18 @@ export default function Students() {
           </Dialog>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {students?.map((student) => (
             <Card key={student.id} className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-start justify-between text-lg">
+              <CardHeader className="pb-3 p-3 sm:p-6 sm:pb-3">
+                <CardTitle className="flex items-start justify-between text-base sm:text-lg">
                   <div>
-                    <div className="font-semibold">{student.name}</div>
-                    <div className="text-sm font-normal text-muted-foreground">{student.class}</div>
+                    <div className="font-semibold text-sm sm:text-base">{student.name}</div>
+                    <div className="text-xs sm:text-sm font-normal text-muted-foreground">{student.class}</div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => handleEdit(student)}>
-                      <Edit className="h-4 w-4" />
+                  <div className="flex gap-0.5 sm:gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => handleEdit(student)} className="h-7 w-7 sm:h-8 sm:w-8">
+                      <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       size="icon"
@@ -161,8 +161,9 @@ export default function Students() {
                           deleteMutation.mutate(student.id);
                         }
                       }}
+                      className="h-7 w-7 sm:h-8 sm:w-8"
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
                     </Button>
                   </div>
                 </CardTitle>
@@ -173,9 +174,9 @@ export default function Students() {
 
         {!students?.length && (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No students added yet. Click "Add Student" to get started.</p>
+            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+              <Users className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-sm sm:text-base text-center px-4">No students added yet. Click "Add Student" to get started.</p>
             </CardContent>
           </Card>
         )}

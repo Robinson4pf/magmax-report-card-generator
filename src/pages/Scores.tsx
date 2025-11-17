@@ -120,21 +120,21 @@ export default function Scores() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-foreground">Enter Scores & Data</h2>
+      <div className="space-y-4 sm:space-y-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Enter Scores & Data</h2>
 
         <Card>
           <CardHeader>
-            <CardTitle>Select Student</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Select Student</CardTitle>
           </CardHeader>
           <CardContent>
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-              <SelectTrigger>
+              <SelectTrigger className="text-sm sm:text-base">
                 <SelectValue placeholder="Choose a student" />
               </SelectTrigger>
               <SelectContent>
                 {students?.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
+                  <SelectItem key={student.id} value={student.id} className="text-sm sm:text-base">
                     {student.name} - {student.class}
                   </SelectItem>
                 ))}
@@ -144,21 +144,21 @@ export default function Scores() {
         </Card>
 
         {selectedStudent && (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Subject Scores</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Subject Scores</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
-                  <Label>Subject</Label>
+                  <Label className="text-sm sm:text-base">Subject</Label>
                   <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base">
                       <SelectValue placeholder="Choose a subject" />
                     </SelectTrigger>
                     <SelectContent>
                       {subjects?.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id}>
+                        <SelectItem key={subject.id} value={subject.id} className="text-sm sm:text-base">
                           {subject.name}
                         </SelectItem>
                       ))}
@@ -169,7 +169,7 @@ export default function Scores() {
                 {selectedSubject && (
                   <>
                     <div className="space-y-2">
-                      <Label>Mid-Term Score (out of 100)</Label>
+                      <Label className="text-sm sm:text-base">Mid-Term Score (out of 100)</Label>
                       <Input
                         type="number"
                         min="0"
@@ -177,12 +177,13 @@ export default function Scores() {
                         step="0.01"
                         value={midTermScore}
                         onChange={(e) => setMidTermScore(e.target.value)}
+                        className="text-sm sm:text-base"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>End-Term Score (out of 100)</Label>
+                      <Label className="text-sm sm:text-base">End-Term Score (out of 100)</Label>
                       <Input
                         type="number"
                         min="0"
@@ -190,38 +191,39 @@ export default function Scores() {
                         step="0.01"
                         value={endTermScore}
                         onChange={(e) => setEndTermScore(e.target.value)}
+                        className="text-sm sm:text-base"
                         required
                       />
                     </div>
 
                     {midTermScore && endTermScore && (
-                      <div className="rounded-lg bg-muted p-4">
-                        <p className="text-sm font-medium">Calculated Totals:</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="rounded-lg bg-muted p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm font-medium">Calculated Totals:</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Mid-Term 50%: {(parseFloat(midTermScore) / 2).toFixed(2)}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           End-Term 50%: {(parseFloat(endTermScore) / 2).toFixed(2)}
                         </p>
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className="text-xs sm:text-sm font-semibold text-foreground">
                           Total (100%): {(parseFloat(midTermScore) / 2 + parseFloat(endTermScore) / 2).toFixed(2)}
                         </p>
                       </div>
                     )}
 
-                    <Button onClick={() => scoreMutation.mutate()} className="w-full">
+                    <Button onClick={() => scoreMutation.mutate()} className="w-full text-sm sm:text-base">
                       Save Score
                     </Button>
                   </>
                 )}
 
                 {studentData?.scores && studentData.scores.length > 0 && (
-                  <div className="mt-6 space-y-2">
-                    <h4 className="font-semibold">Saved Scores:</h4>
+                  <div className="mt-4 sm:mt-6 space-y-2">
+                    <h4 className="font-semibold text-sm sm:text-base">Saved Scores:</h4>
                     {studentData.scores.map((score: any) => (
-                      <div key={score.id} className="rounded-lg border border-border p-3">
-                        <p className="font-medium">{score.subjects.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div key={score.id} className="rounded-lg border border-border p-2.5 sm:p-3">
+                        <p className="font-medium text-sm sm:text-base">{score.subjects.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Total: {(score.mid_term_score / 2 + score.end_term_score / 2).toFixed(2)}
                         </p>
                       </div>
@@ -231,43 +233,45 @@ export default function Scores() {
               </CardContent>
             </Card>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Attendance</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Attendance</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   <div className="space-y-2">
-                    <Label>Total School Days</Label>
+                    <Label className="text-sm sm:text-base">Total School Days</Label>
                     <Input
                       type="number"
                       min="1"
                       value={totalDays}
                       onChange={(e) => setTotalDays(e.target.value)}
                       placeholder={studentData?.attendance?.total_days?.toString() || ""}
+                      className="text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Days Present</Label>
+                    <Label className="text-sm sm:text-base">Days Present</Label>
                     <Input
                       type="number"
                       min="0"
                       value={presentDays}
                       onChange={(e) => setPresentDays(e.target.value)}
                       placeholder={studentData?.attendance?.present_days?.toString() || ""}
+                      className="text-sm sm:text-base"
                     />
                   </div>
 
                   {totalDays && presentDays && (
-                    <div className="rounded-lg bg-muted p-4">
-                      <p className="text-sm font-medium">
+                    <div className="rounded-lg bg-muted p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm font-medium">
                         Attendance: {((parseInt(presentDays) / parseInt(totalDays)) * 100).toFixed(2)}%
                       </p>
                     </div>
                   )}
 
-                  <Button onClick={() => attendanceMutation.mutate()} className="w-full">
+                  <Button onClick={() => attendanceMutation.mutate()} className="w-full text-sm sm:text-base">
                     Save Attendance
                   </Button>
                 </CardContent>
@@ -275,37 +279,40 @@ export default function Scores() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Teacher Comments</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Teacher Comments</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   <div className="space-y-2">
-                    <Label>Student Interest</Label>
+                    <Label className="text-sm sm:text-base">Student Interest</Label>
                     <Textarea
                       value={interest}
                       onChange={(e) => setInterest(e.target.value)}
                       placeholder={studentData?.comments?.interest || "Enter student's interests..."}
+                      className="text-sm sm:text-base min-h-[80px]"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Conduct</Label>
+                    <Label className="text-sm sm:text-base">Conduct</Label>
                     <Textarea
                       value={conduct}
                       onChange={(e) => setConduct(e.target.value)}
                       placeholder={studentData?.comments?.conduct || "Enter conduct assessment..."}
+                      className="text-sm sm:text-base min-h-[80px]"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Behavior</Label>
+                    <Label className="text-sm sm:text-base">Behavior</Label>
                     <Textarea
                       value={behavior}
                       onChange={(e) => setBehavior(e.target.value)}
                       placeholder={studentData?.comments?.behavior || "Enter behavior notes..."}
+                      className="text-sm sm:text-base min-h-[80px]"
                     />
                   </div>
 
-                  <Button onClick={() => commentsMutation.mutate()} className="w-full">
+                  <Button onClick={() => commentsMutation.mutate()} className="w-full text-sm sm:text-base">
                     Save Comments
                   </Button>
                 </CardContent>

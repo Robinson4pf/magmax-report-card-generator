@@ -146,7 +146,8 @@ serve(async (req) => {
       </head>
       <body>
         <div class="header">
-          <h1>STUDENT REPORT CARD</h1>
+          <h1>MAGMAX EDUCATIONAL CENTRE</h1>
+          <h2 style="color: #2563EB; margin: 10px 0;">STUDENT REPORT CARD</h2>
           <p style="color: #6b7280; margin: 5px 0;">Academic Performance Report</p>
         </div>
 

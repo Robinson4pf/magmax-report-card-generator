@@ -102,21 +102,21 @@ export default function Reports() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-foreground">Generate Report Cards</h2>
+      <div className="space-y-4 sm:space-y-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Generate Report Cards</h2>
 
         <Card>
           <CardHeader>
-            <CardTitle>Select Student</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Select Student</CardTitle>
           </CardHeader>
           <CardContent>
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-              <SelectTrigger>
+              <SelectTrigger className="text-sm sm:text-base">
                 <SelectValue placeholder="Choose a student" />
               </SelectTrigger>
               <SelectContent>
                 {students?.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
+                  <SelectItem key={student.id} value={student.id} className="text-sm sm:text-base">
                     {student.name} - {student.class}
                   </SelectItem>
                 ))}
@@ -136,25 +136,26 @@ export default function Reports() {
         {reportData && (
           <Card className="shadow-lg">
             <CardHeader className="border-b bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-              <div>
-                <CardTitle className="text-2xl mb-2">Report Card Preview</CardTitle>
-                <div className="text-sm opacity-90">
+              <div className="space-y-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-center">MAGMAX EDUCATIONAL CENTRE</h1>
+                <CardTitle className="text-lg sm:text-xl md:text-2xl text-center">Report Card Preview</CardTitle>
+                <div className="text-xs sm:text-sm opacity-90">
                   <p className="font-semibold">Name: {reportData.student.name}</p>
                   <p>Class: {reportData.student.class}</p>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
               {reportData.scores.length > 0 && (
-                <div>
+                <div className="overflow-x-auto -mx-3 sm:mx-0">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Subject</TableHead>
-                        <TableHead className="text-right">Mid-Term Score</TableHead>
-                        <TableHead className="text-right">End of Term Score</TableHead>
-                        <TableHead className="text-right">Total Score</TableHead>
-                        <TableHead>Comment</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Subject</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Mid-Term</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">End Term</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Total</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Comment</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -162,19 +163,19 @@ export default function Reports() {
                         const total = (score.mid_term_score / 2 + score.end_term_score / 2).toFixed(2);
                         return (
                           <TableRow key={score.id}>
-                            <TableCell className="font-medium">{score.subjects.name}</TableCell>
-                            <TableCell className="text-right">{score.mid_term_score}</TableCell>
-                            <TableCell className="text-right">{score.end_term_score}</TableCell>
-                            <TableCell className="text-right">{total}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm">
+                            <TableCell className="font-medium text-xs sm:text-sm">{score.subjects.name}</TableCell>
+                            <TableCell className="text-right text-xs sm:text-sm">{score.mid_term_score}</TableCell>
+                            <TableCell className="text-right text-xs sm:text-sm">{score.end_term_score}</TableCell>
+                            <TableCell className="text-right text-xs sm:text-sm">{total}</TableCell>
+                            <TableCell className="text-muted-foreground text-xs sm:text-sm">
                               {score.comment || "-"}
                             </TableCell>
                           </TableRow>
                         );
                       })}
                       <TableRow className="bg-muted/50 font-semibold">
-                        <TableCell colSpan={3}>Grand Total</TableCell>
-                        <TableCell className="text-right">{reportData.grandTotal.toFixed(2)}</TableCell>
+                        <TableCell colSpan={3} className="text-xs sm:text-sm">Grand Total</TableCell>
+                        <TableCell className="text-right text-xs sm:text-sm">{reportData.grandTotal.toFixed(2)}</TableCell>
                         <TableCell></TableCell>
                       </TableRow>
                     </TableBody>
@@ -182,17 +183,17 @@ export default function Reports() {
                 </div>
               )}
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Performance Summary</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base">Performance Summary</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Class Position: {reportData.rank} of {reportData.totalStudents}
                   </p>
                 </div>
                 {reportData.attendance && (
                   <div>
-                    <h3 className="font-semibold text-foreground mb-2">Attendance</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base">Attendance</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {reportData.attendance.present_days} of {reportData.attendance.total_days} days (
                       {((reportData.attendance.present_days / reportData.attendance.total_days) * 100).toFixed(2)}
                       %)
@@ -203,26 +204,26 @@ export default function Reports() {
 
               {reportData.comments && (
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Teacher's Comments</h3>
+                  <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base">Teacher's Comments</h3>
                   {reportData.comments.interest && (
-                    <p className="text-sm text-muted-foreground mb-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">
                       <strong>Interest:</strong> {reportData.comments.interest}
                     </p>
                   )}
                   {reportData.comments.conduct && (
-                    <p className="text-sm text-muted-foreground mb-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">
                       <strong>Conduct:</strong> {reportData.comments.conduct}
                     </p>
                   )}
                   {reportData.comments.behavior && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       <strong>Behavior:</strong> {reportData.comments.behavior}
                     </p>
                   )}
                 </div>
               )}
 
-              <Button onClick={handleGeneratePDF} className="w-full gap-2">
+              <Button onClick={handleGeneratePDF} className="w-full gap-2 text-sm sm:text-base">
                 <Download className="h-4 w-4" />
                 Generate PDF Report
               </Button>

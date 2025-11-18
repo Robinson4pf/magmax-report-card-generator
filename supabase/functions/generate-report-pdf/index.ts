@@ -11,6 +11,18 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication - JWT verification is enabled by default for edge functions
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Generating PDF report for authenticated user');
+    
     const { reportData } = await req.json();
     
     if (!reportData) {

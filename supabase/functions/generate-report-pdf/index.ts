@@ -31,6 +31,25 @@ serve(async (req) => {
 
     const { student, scores, attendance, comments, grandTotal, rank, totalStudents } = reportData;
 
+    // Helper function to generate remark based on score
+    const generateRemark = (total: number): string => {
+      if (total >= 80) return 'HIGHLY PROFICIENT';
+      if (total >= 70) return 'PROFICIENT';
+      if (total >= 60) return 'APPROACHING PROFICIENCY';
+      if (total >= 50) return 'DEVELOPING';
+      return 'NEEDS IMPROVEMENT';
+    };
+
+    // Calculate next term date (assuming 3 months later)
+    const termCloses = new Date();
+    termCloses.setDate(termCloses.getDate() + 30); // 30 days from now
+    const nextTermStarts = new Date(termCloses);
+    nextTermStarts.setDate(nextTermStarts.getDate() + 14); // 2 weeks after term closes
+
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
     // Create HTML content for the PDF
     const htmlContent = `
       <!DOCTYPE html>
@@ -38,220 +57,234 @@ serve(async (req) => {
       <head>
         <meta charset="UTF-8">
         <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
           body {
             font-family: Arial, sans-serif;
-            padding: 40px;
-            max-width: 800px;
+            padding: 30px;
+            max-width: 850px;
             margin: 0 auto;
+            background: white;
           }
           .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+          }
+          .school-logo {
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+          }
+          .school-details {
+            text-align: right;
+            flex: 1;
+            padding-left: 20px;
+          }
+          .school-details h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          .school-details p {
+            font-size: 10px;
+            line-height: 1.4;
+            margin: 2px 0;
+          }
+          .report-title {
             text-align: center;
-            border-bottom: 3px solid #2563EB;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-decoration: underline;
           }
-          .header h1 {
-            color: #2563EB;
-            margin: 0 0 10px 0;
-          }
-          .info-section {
+          .student-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 10px 20px;
+            margin-bottom: 20px;
+            font-size: 12px;
           }
-          .info-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
+          .info-item {
+            display: flex;
           }
-          .info-box h3 {
-            color: #2563EB;
-            margin: 0 0 10px 0;
-            font-size: 14px;
-          }
-          .info-box p {
-            margin: 5px 0;
-            font-size: 13px;
+          .info-item strong {
+            min-width: 120px;
           }
           .scores-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin: 20px 0;
+            font-size: 11px;
           }
           .scores-table th {
-            background: #2563EB;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-size: 13px;
-          }
-          .scores-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 12px;
-          }
-          .scores-table tr:nth-child(even) {
-            background: #f8f9fa;
-          }
-          .summary-box {
-            background: linear-gradient(135deg, #2563EB, #10B981);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-          }
-          .summary-box h3 {
-            margin: 0 0 15px 0;
-          }
-          .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-          }
-          .summary-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 4px;
-          }
-          .summary-item .label {
-            font-size: 11px;
-            opacity: 0.9;
-            margin-bottom: 5px;
-          }
-          .summary-item .value {
-            font-size: 20px;
+            background: #fff;
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
             font-weight: bold;
           }
-          .comments-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
+          .scores-table td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
           }
-          .comments-section h3 {
-            color: #2563EB;
-            margin: 0 0 15px 0;
+          .scores-table td:first-child {
+            text-align: left;
+            padding-left: 10px;
           }
-          .comment-item {
-            margin-bottom: 10px;
+          .scores-table tr:nth-child(even) {
+            background: #f9f9f9;
           }
-          .comment-item strong {
-            color: #2563EB;
+          .footer-info {
+            margin: 20px 0;
+            font-size: 12px;
           }
-          .signatures {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-top: 50px;
+          .footer-info p {
+            margin: 8px 0;
+          }
+          .remarks-section {
+            margin: 20px 0;
+            font-size: 11px;
+          }
+          .remarks-section p {
+            margin: 10px 0;
+            line-height: 1.6;
+          }
+          .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            font-size: 11px;
           }
           .signature-box {
             text-align: center;
+            width: 45%;
           }
           .signature-line {
-            border-top: 2px solid #2563EB;
-            padding-top: 10px;
-            margin-top: 40px;
+            border-top: 1px solid #333;
+            margin-top: 50px;
+            padding-top: 8px;
             font-weight: bold;
+          }
+          .footer-note {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 11px;
+            font-style: italic;
           }
         </style>
       </head>
       <body>
         <div class="header">
-          <h1>MAGMAX EDUCATIONAL CENTRE</h1>
-          <h2 style="color: #2563EB; margin: 10px 0;">STUDENT REPORT CARD</h2>
-          <p style="color: #6b7280; margin: 5px 0;">Academic Performance Report</p>
-        </div>
-
-        <div class="info-section">
-          <div class="info-box">
-            <h3>STUDENT INFORMATION</h3>
-            <p><strong>Name:</strong> ${student.name}</p>
-            <p><strong>Class:</strong> ${student.class}</p>
+          <div class="school-logo">
+            School<br>Logo
           </div>
-          <div class="info-box">
-            <h3>ATTENDANCE</h3>
-            ${attendance ? `
-              <p><strong>Present:</strong> ${attendance.present_days} of ${attendance.total_days} days</p>
-              <p><strong>Percentage:</strong> ${((attendance.present_days / attendance.total_days) * 100).toFixed(2)}%</p>
-            ` : '<p>No attendance data available</p>'}
+          <div class="school-details">
+            <h1>MagMax Educational Centre</h1>
+            <p>P. O. Box NB 481 - NII BOIMAH</p>
+            <p>10TH AVENUE, MCCARTHY HILL, ACCRA</p>
+            <p>0244126130 / 0594738900 / 0544263109</p>
           </div>
         </div>
 
-        <div class="summary-box">
-          <h3>PERFORMANCE SUMMARY</h3>
-          <div class="summary-grid">
-            <div class="summary-item">
-              <div class="label">Grand Total</div>
-              <div class="value">${grandTotal.toFixed(2)}</div>
-            </div>
-            <div class="summary-item">
-              <div class="label">Class Position</div>
-              <div class="value">${rank} of ${totalStudents}</div>
-            </div>
-            <div class="summary-item">
-              <div class="label">Total Subjects</div>
-              <div class="value">${scores.length}</div>
-            </div>
+        <div class="report-title">Academic Report Sheet</div>
+
+        <div class="student-info">
+          <div class="info-item">
+            <strong>Name:</strong>
+            <span>${student.name}</span>
+          </div>
+          <div class="info-item">
+            <strong>No. on Roll:</strong>
+            <span>${rank}</span>
+          </div>
+          <div class="info-item">
+            <strong>Class:</strong>
+            <span>${student.class}</span>
+          </div>
+          <div class="info-item">
+            <strong>Term:</strong>
+            <span>3</span>
+          </div>
+          <div class="info-item">
+            <strong>Attendance:</strong>
+            <span>${attendance ? `${attendance.present_days}/${attendance.total_days}` : 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <strong>Term Closes:</strong>
+            <span>${formatDate(termCloses)}</span>
+          </div>
+          <div class="info-item"></div>
+          <div class="info-item">
+            <strong>Next Term:</strong>
+            <span>${formatDate(nextTermStarts)}</span>
           </div>
         </div>
 
-        ${scores.length > 0 ? `
-          <h3 style="color: #2563EB; margin-bottom: 15px;">ACADEMIC PERFORMANCE</h3>
-          <table class="scores-table">
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Mid-Term</th>
-                <th>End-Term</th>
-                <th>Mid-Term 50%</th>
-                <th>End-Term 50%</th>
-                <th>Total (100%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${scores.map((score: any) => `
+        <table class="scores-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Class Score</th>
+              <th>Exam Score</th>
+              <th>Total</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${scores.map((score: any) => {
+              const midTerm = Number(score.mid_term_score);
+              const endTerm = Number(score.end_term_score);
+              const total = midTerm + endTerm;
+              const remark = generateRemark(total);
+              
+              return `
                 <tr>
-                  <td><strong>${score.subjects.name}</strong></td>
-                  <td>${score.mid_term_score.toFixed(2)}</td>
-                  <td>${score.end_term_score.toFixed(2)}</td>
-                  <td>${(score.mid_term_score / 2).toFixed(2)}</td>
-                  <td>${(score.end_term_score / 2).toFixed(2)}</td>
-                  <td><strong>${(score.mid_term_score / 2 + score.end_term_score / 2).toFixed(2)}</strong></td>
+                  <td>${score.subjects?.name || 'Unknown Subject'}</td>
+                  <td>${midTerm}</td>
+                  <td>${endTerm}</td>
+                  <td>${total}</td>
+                  <td>${remark}</td>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        ` : ''}
+              `;
+            }).join('')}
+          </tbody>
+        </table>
 
-        ${comments ? `
-          <div class="comments-section">
-            <h3>TEACHER'S COMMENTS</h3>
-            ${comments.interest ? `
-              <div class="comment-item">
-                <strong>Student Interest:</strong> ${comments.interest}
-              </div>
-            ` : ''}
-            ${comments.conduct ? `
-              <div class="comment-item">
-                <strong>Conduct:</strong> ${comments.conduct}
-              </div>
-            ` : ''}
-            ${comments.behavior ? `
-              <div class="comment-item">
-                <strong>Behavior:</strong> ${comments.behavior}
-              </div>
-            ` : ''}
-          </div>
-        ` : ''}
+        <div class="footer-info">
+          <p><strong>Conduct:</strong> ${comments?.conduct || 'Not provided'}</p>
+          <p><strong>Interest:</strong> ${comments?.interest || 'Not provided'}</p>
+        </div>
 
-        <div class="signatures">
+        <div class="remarks-section">
+          <p><strong>Class Teacher's Remarks:</strong> Good performance. Demonstrates solid understanding of most concepts.</p>
+          <p><strong>Headmaster's Remarks:</strong> Good progress. Continue to work hard.</p>
+        </div>
+
+        <div class="signature-section">
           <div class="signature-box">
             <div class="signature-line">Class Teacher</div>
           </div>
           <div class="signature-box">
-            <div class="signature-line">Headmaster</div>
+            <div class="signature-line">Head Teacher</div>
           </div>
+        </div>
+
+        <div class="footer-note">
+          School resumes on ${formatDate(nextTermStarts)} for the next term.
         </div>
       </body>
       </html>

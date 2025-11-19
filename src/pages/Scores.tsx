@@ -42,12 +42,16 @@ export default function Scores() {
 
   const scoreMutation = useMutation({
     mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
       const { error } = await supabase.from("scores").upsert([
         {
           student_id: selectedStudent,
           subject_id: selectedSubject,
           mid_term_score: parseFloat(midTermScore),
           end_term_score: parseFloat(endTermScore),
+          teacher_id: user.id
         },
       ]);
       if (error) throw error;
@@ -63,11 +67,15 @@ export default function Scores() {
 
   const attendanceMutation = useMutation({
     mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
       const { error } = await supabase.from("attendance").upsert([
         {
           student_id: selectedStudent,
           total_days: parseInt(totalDays),
           present_days: parseInt(presentDays),
+          teacher_id: user.id
         },
       ]);
       if (error) throw error;
@@ -81,12 +89,16 @@ export default function Scores() {
 
   const commentsMutation = useMutation({
     mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
       const { error } = await supabase.from("teacher_comments").upsert([
         {
           student_id: selectedStudent,
           interest,
           conduct,
           behavior,
+          teacher_id: user.id
         },
       ]);
       if (error) throw error;

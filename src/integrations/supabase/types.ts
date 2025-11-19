@@ -20,6 +20,7 @@ export type Database = {
           id: string
           present_days: number
           student_id: string
+          teacher_id: string | null
           total_days: number
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           id?: string
           present_days: number
           student_id: string
+          teacher_id?: string | null
           total_days: number
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           id?: string
           present_days?: number
           student_id?: string
+          teacher_id?: string | null
           total_days?: number
         }
         Relationships: [
@@ -54,6 +57,7 @@ export type Database = {
           mid_term_score: number
           student_id: string
           subject_id: string
+          teacher_id: string | null
         }
         Insert: {
           created_at?: string
@@ -62,6 +66,7 @@ export type Database = {
           mid_term_score: number
           student_id: string
           subject_id: string
+          teacher_id?: string | null
         }
         Update: {
           created_at?: string
@@ -70,6 +75,7 @@ export type Database = {
           mid_term_score?: number
           student_id?: string
           subject_id?: string
+          teacher_id?: string | null
         }
         Relationships: [
           {
@@ -131,6 +137,7 @@ export type Database = {
           id: string
           name: string
           photo_url: string | null
+          teacher_id: string | null
         }
         Insert: {
           class: string
@@ -138,6 +145,7 @@ export type Database = {
           id?: string
           name: string
           photo_url?: string | null
+          teacher_id?: string | null
         }
         Update: {
           class?: string
@@ -145,6 +153,7 @@ export type Database = {
           id?: string
           name?: string
           photo_url?: string | null
+          teacher_id?: string | null
         }
         Relationships: []
       }
@@ -176,6 +185,7 @@ export type Database = {
           id: string
           interest: string | null
           student_id: string
+          teacher_id: string | null
         }
         Insert: {
           behavior?: string | null
@@ -186,6 +196,7 @@ export type Database = {
           id?: string
           interest?: string | null
           student_id: string
+          teacher_id?: string | null
         }
         Update: {
           behavior?: string | null
@@ -196,6 +207,7 @@ export type Database = {
           id?: string
           interest?: string | null
           student_id?: string
+          teacher_id?: string | null
         }
         Relationships: [
           {

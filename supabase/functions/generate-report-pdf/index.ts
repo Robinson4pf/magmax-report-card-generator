@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify authentication - JWT verification is enabled by default for edge functions
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('No authorization header provided');
@@ -29,9 +29,8 @@ serve(async (req) => {
       throw new Error('Report data is required');
     }
 
-    const { student, scores, attendance, comments, grandTotal, rank, totalStudents } = reportData;
+    const { student, scores, attendance, comments, grandTotal, rank } = reportData;
 
-    // Helper function to generate remark based on score
     const generateRemark = (total: number): string => {
       if (total >= 80) return 'HIGHLY PROFICIENT';
       if (total >= 70) return 'PROFICIENT';
@@ -40,311 +39,371 @@ serve(async (req) => {
       return 'NEEDS IMPROVEMENT';
     };
 
-    // Calculate next term date (assuming 3 months later)
     const termCloses = new Date();
-    termCloses.setDate(termCloses.getDate() + 30); // 30 days from now
+    termCloses.setDate(termCloses.getDate() + 30);
     const nextTermStarts = new Date(termCloses);
-    nextTermStarts.setDate(nextTermStarts.getDate() + 14); // 2 weeks after term closes
+    nextTermStarts.setDate(nextTermStarts.getDate() + 14);
 
     const formatDate = (date: Date) => {
       return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     };
 
-    // Create HTML content for the PDF
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            max-width: 850px;
-            margin: 0 auto;
-            background: white;
-          }
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-          }
-          .school-logo {
-            width: 80px;
-            height: 80px;
-            background: #f0f0f0;
-            border: 1px solid #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #666;
-          }
-          .school-details {
-            text-align: right;
-            flex: 1;
-            padding-left: 20px;
-          }
-          .school-details h1 {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-          }
-          .school-details p {
-            font-size: 10px;
-            line-height: 1.4;
-            margin: 2px 0;
-          }
-          .report-title {
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            margin: 15px 0;
-            text-decoration: underline;
-          }
-          .student-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px 20px;
-            margin-bottom: 20px;
-            font-size: 12px;
-          }
-          .info-item {
-            display: flex;
-          }
-          .info-item strong {
-            min-width: 120px;
-          }
-          .scores-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 11px;
-          }
-          .scores-table th {
-            background: #fff;
-            border: 1px solid #333;
-            padding: 8px;
-            text-align: center;
-            font-weight: bold;
-          }
-          .scores-table td {
-            border: 1px solid #333;
-            padding: 8px;
-            text-align: center;
-          }
-          .scores-table td:first-child {
-            text-align: left;
-            padding-left: 10px;
-          }
-          .scores-table tr:nth-child(even) {
-            background: #f9f9f9;
-          }
-          .footer-info {
-            margin: 20px 0;
-            font-size: 12px;
-          }
-          .footer-info p {
-            margin: 8px 0;
-          }
-          .remarks-section {
-            margin: 20px 0;
-            font-size: 11px;
-          }
-          .remarks-section p {
-            margin: 10px 0;
-            line-height: 1.6;
-          }
-          .signature-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            font-size: 11px;
-          }
-          .signature-box {
-            text-align: center;
-            width: 45%;
-          }
-          .signature-line {
-            border-top: 1px solid #333;
-            margin-top: 50px;
-            padding-top: 8px;
-            font-weight: bold;
-          }
-          .footer-note {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 11px;
-            font-style: italic;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="school-logo">
-            School<br>Logo
-          </div>
-          <div class="school-details">
-            <h1>MagMax Educational Centre</h1>
-            <p>P. O. Box NB 481 - NII BOIMAH</p>
-            <p>10TH AVENUE, MCCARTHY HILL, ACCRA</p>
-            <p>0244126130 / 0594738900 / 0544263109</p>
-          </div>
-        </div>
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const { width, height } = page.getSize();
+    
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const normalFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-        <div class="report-title">Academic Report Sheet</div>
+    const margin = 50;
+    let yPos = height - 60;
 
-        <div class="student-info">
-          <div class="info-item">
-            <strong>Name:</strong>
-            <span>${student.name}</span>
-          </div>
-          <div class="info-item">
-            <strong>No. on Roll:</strong>
-            <span>${rank}</span>
-          </div>
-          <div class="info-item">
-            <strong>Class:</strong>
-            <span>${student.class}</span>
-          </div>
-          <div class="info-item">
-            <strong>Term:</strong>
-            <span>3</span>
-          </div>
-          <div class="info-item">
-            <strong>Attendance:</strong>
-            <span>${attendance ? `${attendance.present_days}/${attendance.total_days}` : 'N/A'}</span>
-          </div>
-          <div class="info-item">
-            <strong>Term Closes:</strong>
-            <span>${formatDate(termCloses)}</span>
-          </div>
-          <div class="info-item"></div>
-          <div class="info-item">
-            <strong>Next Term:</strong>
-            <span>${formatDate(nextTermStarts)}</span>
-          </div>
-        </div>
-
-        <table class="scores-table">
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th>Class Score</th>
-              <th>Exam Score</th>
-              <th>Total</th>
-              <th>Remarks</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${scores.map((score: any) => {
-              const midTerm = Number(score.mid_term_score);
-              const endTerm = Number(score.end_term_score);
-              const total = midTerm + endTerm;
-              const remark = generateRemark(total);
-              
-              return `
-                <tr>
-                  <td>${score.subjects?.name || 'Unknown Subject'}</td>
-                  <td>${midTerm}</td>
-                  <td>${endTerm}</td>
-                  <td>${total}</td>
-                  <td>${remark}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-
-        <div class="footer-info">
-          <p><strong>Conduct:</strong> ${comments?.conduct || 'Not provided'}</p>
-          <p><strong>Interest:</strong> ${comments?.interest || 'Not provided'}</p>
-        </div>
-
-        <div class="remarks-section">
-          <p><strong>Class Teacher's Remarks:</strong> Good performance. Demonstrates solid understanding of most concepts.</p>
-          <p><strong>Headmaster's Remarks:</strong> Good progress. Continue to work hard.</p>
-        </div>
-
-        <div class="signature-section">
-          <div class="signature-box">
-            <div class="signature-line">Class Teacher</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">Head Teacher</div>
-          </div>
-        </div>
-
-        <div class="footer-note">
-          School resumes on ${formatDate(nextTermStarts)} for the next term.
-        </div>
-      </body>
-      </html>
-    `;
-
-    // Use a PDF generation service
-    const pdfResponse = await fetch('https://api.html2pdf.app/v1/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        html: htmlContent,
-        format: 'A4',
-        printBackground: true,
-      }),
+    // Header - School Logo Box
+    page.drawRectangle({
+      x: margin,
+      y: yPos - 70,
+      width: 70,
+      height: 70,
+      borderColor: rgb(0.8, 0.8, 0.8),
+      borderWidth: 1,
+      color: rgb(0.95, 0.95, 0.95),
+    });
+    
+    page.drawText('School', {
+      x: margin + 20,
+      y: yPos - 30,
+      size: 8,
+      font: normalFont,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+    
+    page.drawText('Logo', {
+      x: margin + 24,
+      y: yPos - 40,
+      size: 8,
+      font: normalFont,
+      color: rgb(0.5, 0.5, 0.5),
     });
 
-    if (!pdfResponse.ok) {
-      // Fallback: return HTML as base64 for client-side handling
-      console.log('PDF service unavailable, returning HTML');
-      const base64Html = btoa(unescape(encodeURIComponent(htmlContent)));
-      return new Response(
-        JSON.stringify({ 
-          pdf: base64Html,
-          isHtml: true,
-          message: 'PDF generation service unavailable. Returning HTML content.'
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-    }
+    // School Details
+    const schoolName = 'MagMax Educational Centre';
+    page.drawText(schoolName, {
+      x: width - margin - boldFont.widthOfTextAtSize(schoolName, 14),
+      y: yPos,
+      size: 14,
+      font: boldFont,
+    });
+    
+    yPos -= 20;
+    const address1 = 'P. O. Box NB 481 - NII BOIMAH';
+    page.drawText(address1, {
+      x: width - margin - normalFont.widthOfTextAtSize(address1, 9),
+      y: yPos,
+      size: 9,
+      font: normalFont,
+    });
+    
+    yPos -= 14;
+    const address2 = '10TH AVENUE, MCCARTHY HILL, ACCRA';
+    page.drawText(address2, {
+      x: width - margin - normalFont.widthOfTextAtSize(address2, 9),
+      y: yPos,
+      size: 9,
+      font: normalFont,
+    });
+    
+    yPos -= 14;
+    const phones = '0244126130 / 0594738900 / 0544263109';
+    page.drawText(phones, {
+      x: width - margin - normalFont.widthOfTextAtSize(phones, 9),
+      y: yPos,
+      size: 9,
+      font: normalFont,
+    });
 
-    const pdfBuffer = await pdfResponse.arrayBuffer();
-    const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
+    yPos -= 20;
+    page.drawLine({
+      start: { x: margin, y: yPos },
+      end: { x: width - margin, y: yPos },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+
+    // Report Title
+    yPos -= 30;
+    const title = 'Academic Report Sheet';
+    const titleWidth = boldFont.widthOfTextAtSize(title, 13);
+    page.drawText(title, {
+      x: (width - titleWidth) / 2,
+      y: yPos,
+      size: 13,
+      font: boldFont,
+    });
+    
+    page.drawLine({
+      start: { x: (width - titleWidth) / 2, y: yPos - 2 },
+      end: { x: (width + titleWidth) / 2, y: yPos - 2 },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+
+    // Student Information
+    yPos -= 30;
+    const infoStartY = yPos;
+    const fontSize = 10;
+    const lineHeight = 18;
+    const colWidth = (width - 2 * margin) / 2;
+
+    page.drawText('Name:', { x: margin, y: yPos, size: fontSize, font: boldFont });
+    page.drawText(student.name, { x: margin + 100, y: yPos, size: fontSize, font: normalFont });
+    
+    yPos -= lineHeight;
+    page.drawText('Class:', { x: margin, y: yPos, size: fontSize, font: boldFont });
+    page.drawText(student.class, { x: margin + 100, y: yPos, size: fontSize, font: normalFont });
+    
+    yPos -= lineHeight;
+    page.drawText('Attendance:', { x: margin, y: yPos, size: fontSize, font: boldFont });
+    page.drawText(
+      attendance ? `${attendance.present_days}/${attendance.total_days}` : 'N/A',
+      { x: margin + 100, y: yPos, size: fontSize, font: normalFont }
+    );
+
+    yPos = infoStartY;
+    const rightColX = margin + colWidth;
+    
+    page.drawText('No. on Roll:', { x: rightColX, y: yPos, size: fontSize, font: boldFont });
+    page.drawText(String(rank), { x: rightColX + 100, y: yPos, size: fontSize, font: normalFont });
+    
+    yPos -= lineHeight;
+    page.drawText('Term:', { x: rightColX, y: yPos, size: fontSize, font: boldFont });
+    page.drawText('3', { x: rightColX + 100, y: yPos, size: fontSize, font: normalFont });
+    
+    yPos -= lineHeight;
+    page.drawText('Term Closes:', { x: rightColX, y: yPos, size: fontSize, font: boldFont });
+    page.drawText(formatDate(termCloses), { x: rightColX + 100, y: yPos, size: fontSize, font: normalFont });
+    
+    yPos -= lineHeight;
+    page.drawText('Next Term:', { x: rightColX, y: yPos, size: fontSize, font: boldFont });
+    page.drawText(formatDate(nextTermStarts), { x: rightColX + 100, y: yPos, size: fontSize, font: normalFont });
+
+    // Scores Table
+    yPos -= 35;
+    const tableHeaders = ['Subject', 'Class Score', 'Exam Score', 'Total', 'Remarks'];
+    const colWidths = [180, 70, 70, 60, 115];
+    const rowHeight = 20;
+    const cellPadding = 5;
+    
+    // Header row
+    let xPos = margin;
+    page.drawRectangle({
+      x: margin,
+      y: yPos - rowHeight,
+      width: width - 2 * margin,
+      height: rowHeight,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1,
+    });
+    
+    tableHeaders.forEach((header, i) => {
+      page.drawText(header, {
+        x: xPos + cellPadding,
+        y: yPos - rowHeight + 7,
+        size: 9,
+        font: boldFont,
+      });
+      
+      if (i < tableHeaders.length - 1) {
+        xPos += colWidths[i];
+        page.drawLine({
+          start: { x: xPos, y: yPos },
+          end: { x: xPos, y: yPos - rowHeight },
+          thickness: 1,
+          color: rgb(0, 0, 0),
+        });
+      }
+    });
+    
+    yPos -= rowHeight;
+
+    // Data rows
+    scores.forEach((score: any, rowIndex: number) => {
+      const midTerm = Number(score.mid_term_score);
+      const endTerm = Number(score.end_term_score);
+      const total = midTerm / 2 + endTerm / 2;
+      
+      const rowData = [
+        score.subjects?.name || 'Unknown Subject',
+        midTerm.toFixed(1),
+        endTerm.toFixed(1),
+        total.toFixed(1),
+        generateRemark(total)
+      ];
+      
+      if (rowIndex % 2 === 0) {
+        page.drawRectangle({
+          x: margin,
+          y: yPos - rowHeight,
+          width: width - 2 * margin,
+          height: rowHeight,
+          color: rgb(0.97, 0.97, 0.97),
+        });
+      }
+      
+      page.drawRectangle({
+        x: margin,
+        y: yPos - rowHeight,
+        width: width - 2 * margin,
+        height: rowHeight,
+        borderColor: rgb(0, 0, 0),
+        borderWidth: 1,
+      });
+      
+      xPos = margin;
+      rowData.forEach((cell, i) => {
+        const textX = i === 0 ? xPos + cellPadding : xPos + colWidths[i] / 2 - normalFont.widthOfTextAtSize(cell, 9) / 2;
+        page.drawText(cell, {
+          x: textX,
+          y: yPos - rowHeight + 7,
+          size: 9,
+          font: normalFont,
+        });
+        
+        if (i < rowData.length - 1) {
+          xPos += colWidths[i];
+          page.drawLine({
+            start: { x: xPos, y: yPos },
+            end: { x: xPos, y: yPos - rowHeight },
+            thickness: 1,
+            color: rgb(0, 0, 0),
+          });
+        }
+      });
+      
+      yPos -= rowHeight;
+    });
+
+    // Grand Total Row
+    page.drawRectangle({
+      x: margin,
+      y: yPos - rowHeight,
+      width: width - 2 * margin,
+      height: rowHeight,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1,
+    });
+    
+    xPos = margin;
+    const grandTotalRow = ['GRAND TOTAL', '', '', grandTotal.toFixed(1), generateRemark(grandTotal / scores.length)];
+    
+    grandTotalRow.forEach((cell, i) => {
+      if (cell) {
+        const textX = i === 0 ? xPos + cellPadding : xPos + colWidths[i] / 2 - boldFont.widthOfTextAtSize(cell, 9) / 2;
+        page.drawText(cell, {
+          x: textX,
+          y: yPos - rowHeight + 7,
+          size: 9,
+          font: boldFont,
+        });
+      }
+      
+      if (i < grandTotalRow.length - 1) {
+        xPos += colWidths[i];
+        page.drawLine({
+          start: { x: xPos, y: yPos },
+          end: { x: xPos, y: yPos - rowHeight },
+          thickness: 1,
+          color: rgb(0, 0, 0),
+        });
+      }
+    });
+    
+    yPos -= rowHeight + 20;
+
+    // Footer
+    page.drawText('Conduct:', { x: margin, y: yPos, size: 10, font: boldFont });
+    page.drawText(comments?.conduct || 'N/A', { x: margin + 70, y: yPos, size: 10, font: normalFont });
+    
+    yPos -= 18;
+    page.drawText('Interest:', { x: margin, y: yPos, size: 10, font: boldFont });
+    page.drawText(comments?.interest || 'N/A', { x: margin + 70, y: yPos, size: 10, font: normalFont });
+
+    // Remarks
+    yPos -= 30;
+    page.drawText("Class Teacher's Remarks:", { x: margin, y: yPos, size: 9, font: boldFont });
+    yPos -= 15;
+    page.drawText(comments?.behavior || 'No remarks provided', { x: margin, y: yPos, size: 9, font: normalFont, maxWidth: width - 2 * margin });
+
+    yPos -= 25;
+    page.drawText("Headmaster's Remarks:", { x: margin, y: yPos, size: 9, font: boldFont });
+    yPos -= 15;
+    page.drawText(comments?.conduct || 'No remarks provided', { x: margin, y: yPos, size: 9, font: normalFont, maxWidth: width - 2 * margin });
+
+    // Signatures
+    yPos -= 50;
+    
+    page.drawLine({
+      start: { x: margin, y: yPos },
+      end: { x: margin + 200, y: yPos },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText('Class Teacher', {
+      x: margin + 70,
+      y: yPos - 15,
+      size: 9,
+      font: boldFont,
+    });
+
+    const rightSigX = width - margin - 200;
+    page.drawLine({
+      start: { x: rightSigX, y: yPos },
+      end: { x: width - margin, y: yPos },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText('Head Teacher', {
+      x: rightSigX + 65,
+      y: yPos - 15,
+      size: 9,
+      font: boldFont,
+    });
+
+    // Footer note
+    yPos -= 40;
+    const footerText = `School resumes on ${formatDate(nextTermStarts)}`;
+    const footerWidth = normalFont.widthOfTextAtSize(footerText, 9);
+    page.drawText(footerText, {
+      x: (width - footerWidth) / 2,
+      y: yPos,
+      size: 9,
+      font: normalFont,
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const base64Pdf = btoa(String.fromCharCode(...pdfBytes));
+
+    console.log('PDF generated successfully');
 
     return new Response(
       JSON.stringify({ pdf: base64Pdf }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
       }
     );
-
   } catch (error) {
-    console.error('PDF generation error:', error);
+    console.error('Error generating PDF:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to generate PDF';
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { 
+      JSON.stringify({ error: errorMessage }),
+      {
         status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
       }
     );
   }

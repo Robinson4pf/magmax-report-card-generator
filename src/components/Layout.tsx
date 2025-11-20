@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, BookOpen, FileText, Trophy, PlusCircle, LogOut } from "lucide-react";
+import { Home, Users, BookOpen, FileText, Trophy, PlusCircle, LogOut, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -85,6 +109,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={cn(
+                  "flex items-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all",
+                  location.pathname === "/admin"
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="whitespace-nowrap">Admin</span>
+              </Link>
+            )}
           </div>
         </nav>
 

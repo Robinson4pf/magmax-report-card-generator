@@ -181,11 +181,11 @@ export default function Scores() {
                 {selectedSubject && (
                   <>
                     <div className="space-y-2">
-                      <Label className="text-sm sm:text-base">Mid-Term Score (out of 100)</Label>
+                      <Label className="text-sm sm:text-base">SBA / Class Score (out of 50)</Label>
                       <Input
                         type="number"
                         min="0"
-                        max="100"
+                        max="50"
                         step="0.01"
                         value={midTermScore}
                         onChange={(e) => setMidTermScore(e.target.value)}
@@ -195,11 +195,11 @@ export default function Scores() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm sm:text-base">End-Term Score (out of 100)</Label>
+                      <Label className="text-sm sm:text-base">End of Term Score (out of 50)</Label>
                       <Input
                         type="number"
                         min="0"
-                        max="100"
+                        max="50"
                         step="0.01"
                         value={endTermScore}
                         onChange={(e) => setEndTermScore(e.target.value)}
@@ -212,13 +212,13 @@ export default function Scores() {
                       <div className="rounded-lg bg-muted p-3 sm:p-4">
                         <p className="text-xs sm:text-sm font-medium">Calculated Totals:</p>
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                          Mid-Term 50%: {(parseFloat(midTermScore) / 2).toFixed(2)}
+                          SBA (50): {parseFloat(midTermScore).toFixed(2)}
                         </p>
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                          End-Term 50%: {(parseFloat(endTermScore) / 2).toFixed(2)}
+                          End of Term (50): {parseFloat(endTermScore).toFixed(2)}
                         </p>
                         <p className="text-xs sm:text-sm font-semibold text-foreground">
-                          Total (100%): {(parseFloat(midTermScore) / 2 + parseFloat(endTermScore) / 2).toFixed(2)}
+                          Total (100): {(parseFloat(midTermScore) + parseFloat(endTermScore)).toFixed(2)}
                         </p>
                       </div>
                     )}
@@ -236,7 +236,7 @@ export default function Scores() {
                       <div key={score.id} className="rounded-lg border border-border p-2.5 sm:p-3">
                         <p className="font-medium text-sm sm:text-base">{score.subjects.name}</p>
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                          Total: {(score.mid_term_score / 2 + score.end_term_score / 2).toFixed(2)}
+                          Total: {(score.mid_term_score + score.end_term_score).toFixed(2)}
                         </p>
                       </div>
                     ))}

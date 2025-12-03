@@ -1,21 +1,36 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, History, Calendar, User } from "lucide-react";
 import Layout from "@/components/Layout";
 import { toast } from "sonner";
 import ReportCardPreview from "@/components/ReportCardPreview";
+import { format } from "date-fns";
 
 export default function Reports() {
   const [selectedStudent, setSelectedStudent] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: students } = useQuery({
     queryKey: ["students"],
     queryFn: async () => {
       const { data, error } = await supabase.from("students").select("*").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: reportHistory } = useQuery({
+    queryKey: ["report-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("report_history")
+        .select("*")
+        .order("generated_at", { ascending: false })
+        .limit(10);
       if (error) throw error;
       return data;
     },
@@ -38,7 +53,6 @@ export default function Reports() {
         0
       ) || 0;
 
-      // Get ranking
       const { data: allStudents } = await supabase.from("students").select("id");
       const rankings = await Promise.all(
         allStudents?.map(async (s) => {
@@ -74,13 +88,26 @@ export default function Reports() {
     if (!reportData) return;
 
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase.functions.invoke("generate-report-pdf", {
         body: { reportData },
       });
 
       if (error) throw error;
 
-      // Create blob and download
+      // Log to history
+      if (userData.user) {
+        await supabase.from("report_history").insert({
+          student_id: reportData.student.id,
+          teacher_id: userData.user.id,
+          student_name: reportData.student.name,
+          student_class: reportData.student.class,
+          downloaded: true,
+        });
+        queryClient.invalidateQueries({ queryKey: ["report-history"] });
+      }
+
       const blob = new Blob([Uint8Array.from(atob(data.pdf), c => c.charCodeAt(0))], {
         type: "application/pdf",
       });
@@ -159,6 +186,42 @@ export default function Reports() {
             </CardContent>
           </Card>
         )}
+
+        {/* Report History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <History className="h-5 w-5" />
+              Recent Report History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {reportHistory && reportHistory.length > 0 ? (
+              <div className="space-y-3">
+                {reportHistory.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">{entry.student_name}</p>
+                        <p className="text-xs text-muted-foreground">{entry.student_class}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(entry.generated_at), "MMM d, yyyy h:mm a")}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-6">No reports generated yet</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

@@ -49,6 +49,36 @@ export type Database = {
           },
         ]
       }
+      report_history: {
+        Row: {
+          downloaded: boolean
+          generated_at: string
+          id: string
+          student_class: string
+          student_id: string
+          student_name: string
+          teacher_id: string
+        }
+        Insert: {
+          downloaded?: boolean
+          generated_at?: string
+          id?: string
+          student_class: string
+          student_id: string
+          student_name: string
+          teacher_id: string
+        }
+        Update: {
+          downloaded?: boolean
+          generated_at?: string
+          id?: string
+          student_class?: string
+          student_id?: string
+          student_name?: string
+          teacher_id?: string
+        }
+        Relationships: []
+      }
       scores: {
         Row: {
           created_at: string

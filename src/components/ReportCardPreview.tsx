@@ -129,15 +129,15 @@ export default function ReportCardPreview({ reportData }: ReportCardPreviewProps
           <thead>
             <tr className="bg-white">
               <th className="border border-black p-2 text-left font-bold">Subject</th>
-              <th className="border border-black p-2 text-center font-bold">Class Score</th>
-              <th className="border border-black p-2 text-center font-bold">Exam Score</th>
-              <th className="border border-black p-2 text-center font-bold">Total</th>
+              <th className="border border-black p-2 text-center font-bold">Class Score (50)</th>
+              <th className="border border-black p-2 text-center font-bold">Exam Score (50)</th>
+              <th className="border border-black p-2 text-center font-bold">Total (100)</th>
               <th className="border border-black p-2 text-center font-bold">Remarks</th>
             </tr>
           </thead>
           <tbody>
             {reportData.scores.map((score, index) => {
-              const total = score.mid_term_score / 2 + score.end_term_score / 2;
+              const total = score.mid_term_score + score.end_term_score;
               return (
                 <tr key={score.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                   <td className="border border-black p-2">{score.subjects.name}</td>

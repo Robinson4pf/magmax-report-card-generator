@@ -206,7 +206,7 @@ serve(async (req) => {
 
     // Scores Table
     yPos -= 35;
-    const tableHeaders = ['Subject', 'Class Score', 'Exam Score', 'Total', 'Remarks'];
+    const tableHeaders = ['Subject', 'Class Score (50)', 'Exam Score (50)', 'Total (100)', 'Remarks'];
     const colWidths = [180, 70, 70, 60, 115];
     const rowHeight = 20;
     const cellPadding = 5;
@@ -247,7 +247,7 @@ serve(async (req) => {
     scores.forEach((score: any, rowIndex: number) => {
       const midTerm = Number(score.mid_term_score);
       const endTerm = Number(score.end_term_score);
-      const total = midTerm / 2 + endTerm / 2;
+      const total = midTerm + endTerm;
       
       const rowData = [
         score.subjects?.name || 'Unknown Subject',

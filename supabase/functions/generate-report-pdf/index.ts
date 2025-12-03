@@ -39,6 +39,24 @@ serve(async (req) => {
       return 'NEEDS IMPROVEMENT';
     };
 
+    const generateTeacherRemark = (percentage: number): string => {
+      if (percentage >= 90) return "An outstanding performance! Keep up the excellent work and continue to inspire others.";
+      if (percentage >= 80) return "Very good effort this term. Your dedication is commendable. Keep striving for excellence.";
+      if (percentage >= 70) return "Good performance. With a little more effort, you can achieve even greater results.";
+      if (percentage >= 60) return "Fair performance. Focus more on your studies and you will see improvement.";
+      if (percentage >= 50) return "You passed, but there is room for improvement. Work harder next term.";
+      return "More effort is needed. Do not give up; with determination, you can improve.";
+    };
+
+    const generateHeadmasterRemark = (percentage: number): string => {
+      if (percentage >= 90) return "Exceptional achievement! You are a role model for your peers. Keep excelling.";
+      if (percentage >= 80) return "Commendable performance. Continue with this positive attitude towards learning.";
+      if (percentage >= 70) return "A good result. Push yourself further and aim for excellence next term.";
+      if (percentage >= 60) return "Satisfactory progress. With better focus and commitment, you can do better.";
+      if (percentage >= 50) return "You have the potential to do better. Apply yourself more diligently.";
+      return "Improvement is needed. Stay encouraged and work harder next term.";
+    };
+
     const termCloses = new Date();
     termCloses.setDate(termCloses.getDate() + 30);
     const nextTermStarts = new Date(termCloses);
@@ -329,14 +347,18 @@ serve(async (req) => {
 
     // Remarks
     yPos -= 30;
+    const averageScore = grandTotal / scores.length;
+    const teacherRemark = generateTeacherRemark(averageScore);
+    const headmasterRemark = generateHeadmasterRemark(averageScore);
+    
     page.drawText("Class Teacher's Remarks:", { x: margin, y: yPos, size: 9, font: boldFont });
     yPos -= 15;
-    page.drawText(comments?.behavior || 'No remarks provided', { x: margin, y: yPos, size: 9, font: normalFont, maxWidth: width - 2 * margin });
+    page.drawText(teacherRemark, { x: margin, y: yPos, size: 9, font: normalFont, maxWidth: width - 2 * margin });
 
     yPos -= 25;
     page.drawText("Headmaster's Remarks:", { x: margin, y: yPos, size: 9, font: boldFont });
     yPos -= 15;
-    page.drawText(comments?.conduct || 'No remarks provided', { x: margin, y: yPos, size: 9, font: normalFont, maxWidth: width - 2 * margin });
+    page.drawText(headmasterRemark, { x: margin, y: yPos, size: 9, font: normalFont, maxWidth: width - 2 * margin });
 
     // Signatures
     yPos -= 50;
